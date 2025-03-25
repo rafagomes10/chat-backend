@@ -18,13 +18,20 @@ app.use(cors());
 
 // Rota básica para teste
 app.get('/', (req, res) => {
-  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D version: 1.0.2')
+  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D version: 1.0.4')
 });
 
 // Lista de usuários conectados
 const connectedUsers = new Map();
 // Lista de mensagens (para manter histórico temporário)
 const messages = [];
+
+// Função para obter o horário de Brasília
+function getHorarioBrasilia() {
+  return new Date().toLocaleTimeString('pt-BR', {
+    timeZone: 'America/Sao_Paulo'
+  });
+}
 
 // Configuração do Socket.io
 io.on('connection', (socket) => {
@@ -39,7 +46,7 @@ io.on('connection', (socket) => {
     const welcomeMessage = {
       user: 'Sistema',
       text: `Bem-vindo ao chat, ${username}!`,
-      time: new Date().toLocaleTimeString()
+      time: getHorarioBrasilia()
     };
     
     // Adicionar à lista de mensagens
@@ -55,7 +62,7 @@ io.on('connection', (socket) => {
     const joinMessage = {
       user: 'Sistema',
       text: `${username} entrou no chat`,
-      time: new Date().toLocaleTimeString()
+      time: getHorarioBrasilia()
     };
     
     messages.push(joinMessage);
@@ -71,7 +78,7 @@ io.on('connection', (socket) => {
     const newMessage = {
       user: username,
       text: message,
-      time: new Date().toLocaleTimeString()
+      time: getHorarioBrasilia()
     };
     
     // Adicionar à lista de mensagens
@@ -106,7 +113,7 @@ io.on('connection', (socket) => {
       const leaveMessage = {
         user: 'Sistema',
         text: `${username} saiu do chat`,
-        time: new Date().toLocaleTimeString()
+        time: getHorarioBrasilia()
       };
       
       messages.push(leaveMessage);
