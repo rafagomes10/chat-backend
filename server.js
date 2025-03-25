@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000", // URL do frontend Next.js
+    origin: "https://chatfrontend-rg.vercel.app/", // URL do frontend Next.js
     methods: ["GET", "POST"],
     credentials: true
   }
