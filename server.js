@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "https://chatfrontend-rg.vercel.app/", // URL do frontend Next.js
+    origin: "https://chatfrontend-rg.vercel.app", // URL do frontend Next.js
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -18,7 +18,7 @@ app.use(cors());
 
 // Rota básica para teste
 app.get('/', (req, res) => {
-  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D v1.0.0')
+  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D version: 1.0.2')
 });
 
 // Lista de usuários conectados
