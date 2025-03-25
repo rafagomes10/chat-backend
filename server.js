@@ -18,7 +18,7 @@ app.use(cors());
 
 // Rota básica para teste
 app.get('/', (req, res) => {
-  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D version: 1.0.4')
+  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D version: 1.0.5')
 });
 
 // Lista de usuários conectados
@@ -26,10 +26,13 @@ const connectedUsers = new Map();
 // Lista de mensagens (para manter histórico temporário)
 const messages = [];
 
-// Função para obter o horário de Brasília
 function getHorarioBrasilia() {
-  return new Date().toLocaleTimeString('pt-BR', {
-    timeZone: 'America/Sao_Paulo'
+  return new Date().toLocaleTimeString('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
   });
 }
 

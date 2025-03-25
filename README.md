@@ -38,7 +38,7 @@ npm install
 
 - Para iniciar o servidor em modo de produção:
 
-1-npm start
+1- npm start
 
 ## Estrutura do Projeto
 
