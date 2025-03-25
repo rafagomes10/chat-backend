@@ -18,7 +18,7 @@ app.use(cors());
 
 // Rota básica para teste
 app.get('/', (req, res) => {
-  res.send('API do Chat está funcionando! :D')
+  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D')
 });
 
 // Lista de usuários conectados
