@@ -1,8 +1,10 @@
 const express = require('express');
 const http = require('http');
+const https = require('https'); // Adicione esta linha para fazer requisições HTTPS
 const socketIo = require('socket.io');
 const cors = require('cors');
-const fetch = require('node-fetch'); // Adicione esta linha se estiver usando Node.js < 18
+// Remova ou comente esta linha se não estiver usando fetch diretamente
+// const fetch = require('node-fetch');
 const { setupTicTacToe, handlePlayerDisconnect, activeGames, playersInGame } = require('./ticTacToe');
 
 const app = express();
@@ -24,7 +26,7 @@ app.get('/', (req, res) => {
   res.send(`
     API do Chat está funcionando!<br>
     Desenvolvido por: Rafael Gomez!<br>
-    Version: 1.2.1<br>
+    Version: 1.2.2<br>
     New features:<br>
     - Game TicTacToe!<br>
     - Auto-Ping<br>
@@ -52,22 +54,25 @@ function manterServidorAtivo() {
     setInterval(() => {
       console.log('Iniciando auto-ping em:', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
       
-      fetch(pingURL)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Resposta não-OK: ${response.status}`);
-          }
-          return response.text();
-        })
-        .then(data => console.log('Auto-ping realizado com sucesso:', data))
-        .catch(err => {
-          console.error('Erro no auto-ping:', err);
-          // Tentar novamente após 1 minuto em caso de falha
-          setTimeout(() => {
-            console.log('Tentando auto-ping novamente após falha...');
-            fetch(pingURL).catch(e => console.error('Falha na nova tentativa:', e));
-          }, 60000);
+      // Usando o módulo https nativo do Node.js
+      https.get(pingURL, (res) => {
+        let data = '';
+        
+        res.on('data', (chunk) => {
+          data += chunk;
         });
+        
+        res.on('end', () => {
+          console.log('Auto-ping realizado com sucesso:', data);
+        });
+      }).on('error', (err) => {
+        console.error('Erro no auto-ping:', err);
+        // Tentar novamente após 1 minuto em caso de falha
+        setTimeout(() => {
+          console.log('Tentando auto-ping novamente após falha...');
+          https.get(pingURL).on('error', (e) => console.error('Falha na nova tentativa:', e));
+        }, 60000);
+      });
     }, intervalo);
     console.log('Auto-ping configurado para ambiente de produção');
   } else {
