@@ -2,12 +2,14 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const { setupTicTacToe, handlePlayerDisconnect, activeGames, playersInGame } = require('./ticTacToe');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "https://chatfrontend-rg.vercel.app", // URL do frontend Next.js
+    //origin: "http://localhost:3000",
+    origin: "https://chatfrontend-rg.vercel.app",
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -18,7 +20,7 @@ app.use(cors());
 
 // Rota básica para teste
 app.get('/', (req, res) => {
-  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D version: 1.0.5')
+  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D version: 1.1.0 new feature: game TicTacToe!');
 });
 
 // Lista de usuários conectados
@@ -51,13 +53,13 @@ io.on('connection', (socket) => {
       text: `Bem-vindo ao chat, ${username}!`,
       time: getHorarioBrasilia()
     };
-    
+
     // Adicionar à lista de mensagens
     messages.push(welcomeMessage);
-    
+
     // Enviar mensagem de boas-vindas
     socket.emit('message', welcomeMessage);
-    
+
     // Enviar histórico de mensagens para o novo usuário
     socket.emit('message-history', messages);
 
@@ -67,12 +69,15 @@ io.on('connection', (socket) => {
       text: `${username} entrou no chat`,
       time: getHorarioBrasilia()
     };
-    
+
     messages.push(joinMessage);
     socket.broadcast.emit('message', joinMessage);
 
     // Atualizar lista de usuários para todos
     io.emit('update-users', Array.from(connectedUsers.values()));
+
+    // Enviar lista de jogadores em jogo para o novo usuário
+    socket.emit('players-in-game-update', Array.from(playersInGame));
   });
 
   // Quando um usuário envia uma mensagem
@@ -83,13 +88,16 @@ io.on('connection', (socket) => {
       text: message,
       time: getHorarioBrasilia()
     };
-    
+
     // Adicionar à lista de mensagens
     messages.push(newMessage);
-    
+
     // Enviar para todos
     io.emit('message', newMessage);
   });
+
+  // Configurar lógica do jogo da velha
+  setupTicTacToe(io, socket, connectedUsers, messages);
 
   // Quando um usuário desconecta
   socket.on('disconnect', () => {
@@ -97,9 +105,12 @@ io.on('connection', (socket) => {
     if (username) {
       console.log(`Usuário ${username} desconectado`);
 
+      // Lidar com desconexão de jogador em jogo ativo
+      handlePlayerDisconnect(io, socket, username, connectedUsers, messages, activeGames);
+
       // Remover usuário da lista
       connectedUsers.delete(socket.id);
-      
+
       // Remover mensagens do usuário que saiu
       const userMessageIndexes = [];
       messages.forEach((msg, index) => {
@@ -107,7 +118,7 @@ io.on('connection', (socket) => {
           userMessageIndexes.unshift(index); // Adiciona no início para remover de trás para frente
         }
       });
-      
+
       userMessageIndexes.forEach(index => {
         messages.splice(index, 1);
       });
@@ -118,13 +129,13 @@ io.on('connection', (socket) => {
         text: `${username} saiu do chat`,
         time: getHorarioBrasilia()
       };
-      
+
       messages.push(leaveMessage);
       socket.broadcast.emit('message', leaveMessage);
 
       // Atualizar lista de usuários para todos
       io.emit('update-users', Array.from(connectedUsers.values()));
-      
+
       // Enviar histórico atualizado de mensagens (sem as mensagens do usuário que saiu)
       io.emit('message-history', messages);
     }
