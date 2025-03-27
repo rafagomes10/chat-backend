@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const fetch = require('node-fetch'); // Adicione esta linha se estiver usando Node.js < 18
 const { setupTicTacToe, handlePlayerDisconnect, activeGames, playersInGame } = require('./ticTacToe');
 
 const app = express();
@@ -20,8 +21,45 @@ app.use(cors());
 
 // Rota básica para teste
 app.get('/', (req, res) => {
-  res.send('API do Chat está funcionando! Desenvolvido por: Rafael Gomez! :D version: 1.1.0 new feature: game TicTacToe!');
+  res.send(`
+    API do Chat está funcionando!<br>
+    Desenvolvido por: Rafael Gomez!<br>
+    Version: 1.2.0<br>
+    New features:<br>
+    - Game TicTacToe!<br>
+    - Auto-Ping<br>
+    - No duplicate login!
+  `);
 });
+
+// Rota para ping (manter servidor ativo)
+app.get('/ping', (req, res) => {
+  console.log('Servidor pingado em:', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
+  res.status(200).send('pong');
+});
+
+// Definir a porta antes de usar na função
+const PORT = process.env.PORT || 4000; // Usando porta 4000 para o backend
+
+// Função para manter o servidor ativo no Render.com
+function manterServidorAtivo() {
+  // Só executar o auto-ping em produção
+  if (process.env.NODE_ENV === 'production') {
+    const intervalo = 12 * 60 * 1000; // 12 minutos em milissegundos
+    setInterval(() => {
+      // URL do seu aplicativo no Render
+      const url = 'https://chat-backend-6r2a.onrender.com/ping';
+        
+      fetch(url)
+        .then(response => response.text())
+        .then(data => console.log('Auto-ping realizado:', data))
+        .catch(err => console.error('Erro no auto-ping:', err));
+    }, intervalo);
+    console.log('Auto-ping configurado para ambiente de produção');
+  } else {
+    console.log('Auto-ping não é necessário em ambiente de desenvolvimento local');
+  }
+}
 
 // Lista de usuários conectados
 const connectedUsers = new Map();
@@ -154,7 +192,10 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 4000; // Usando porta 4000 para o backend
+// Remove this duplicate declaration and use the existing PORT variable
 server.listen(PORT, () => {
   console.log(`Servidor backend rodando na porta ${PORT}`);
+  
+  // Iniciar o mecanismo de ping automático
+  manterServidorAtivo();
 });
