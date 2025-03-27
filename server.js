@@ -44,6 +44,15 @@ io.on('connection', (socket) => {
 
   // Quando um usuário se conecta
   socket.on('user-join', (username) => {
+    // Verificar se o nome de usuário já está em uso
+    const isUsernameTaken = Array.from(connectedUsers.values()).includes(username);
+    
+    if (isUsernameTaken) {
+      // Enviar mensagem de erro para o cliente
+      socket.emit('login-error', 'Este nome de usuário já está em uso. Por favor, escolha outro nome.');
+      return;
+    }
+    
     // Armazenar o nome do usuário
     connectedUsers.set(socket.id, username);
 
@@ -59,6 +68,9 @@ io.on('connection', (socket) => {
 
     // Enviar mensagem de boas-vindas
     socket.emit('message', welcomeMessage);
+    
+    // Informar ao cliente que o login foi bem-sucedido
+    socket.emit('login-success');
 
     // Enviar histórico de mensagens para o novo usuário
     socket.emit('message-history', messages);
