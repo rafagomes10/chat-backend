@@ -24,11 +24,12 @@ app.get('/', (req, res) => {
   res.send(`
     API do Chat está funcionando!<br>
     Desenvolvido por: Rafael Gomez!<br>
-    Version: 1.2.0<br>
+    Version: 1.2.1<br>
     New features:<br>
     - Game TicTacToe!<br>
     - Auto-Ping<br>
-    - No duplicate login!
+    - No duplicate login!<br>
+    - New autoPing teste!
   `);
 });
 
@@ -46,14 +47,27 @@ function manterServidorAtivo() {
   // Só executar o auto-ping em produção
   if (process.env.NODE_ENV === 'production') {
     const intervalo = 12 * 60 * 1000; // 12 minutos em milissegundos
+    const pingURL = process.env.APP_URL || 'https://chat-backend-6r2a.onrender.com/ping';
+    
     setInterval(() => {
-      // URL do seu aplicativo no Render
-      const url = 'https://chat-backend-6r2a.onrender.com/ping';
-        
-      fetch(url)
-        .then(response => response.text())
-        .then(data => console.log('Auto-ping realizado:', data))
-        .catch(err => console.error('Erro no auto-ping:', err));
+      console.log('Iniciando auto-ping em:', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
+      
+      fetch(pingURL)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Resposta não-OK: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then(data => console.log('Auto-ping realizado com sucesso:', data))
+        .catch(err => {
+          console.error('Erro no auto-ping:', err);
+          // Tentar novamente após 1 minuto em caso de falha
+          setTimeout(() => {
+            console.log('Tentando auto-ping novamente após falha...');
+            fetch(pingURL).catch(e => console.error('Falha na nova tentativa:', e));
+          }, 60000);
+        });
     }, intervalo);
     console.log('Auto-ping configurado para ambiente de produção');
   } else {
