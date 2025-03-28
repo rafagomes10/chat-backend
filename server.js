@@ -1,10 +1,8 @@
 const express = require('express');
 const http = require('http');
-const https = require('https'); // Adicione esta linha para fazer requisições HTTPS
+const https = require('https');
 const socketIo = require('socket.io');
 const cors = require('cors');
-// Remova ou comente esta linha se não estiver usando fetch diretamente
-// const fetch = require('node-fetch');
 const { setupTicTacToe, handlePlayerDisconnect, activeGames, playersInGame } = require('./ticTacToe');
 
 const app = express();
@@ -42,26 +40,26 @@ app.get('/ping', (req, res) => {
 });
 
 // Definir a porta antes de usar na função
-const PORT = process.env.PORT || 4000; // Usando porta 4000 para o backend
+const PORT = process.env.PORT || 4000;
 
 // Função para manter o servidor ativo no Render.com
 function manterServidorAtivo() {
   // Só executar o auto-ping em produção
   if (process.env.NODE_ENV === 'production') {
-    const intervalo = 12 * 60 * 1000; // 12 minutos em milissegundos
+    const intervalo = 13 * 60 * 1000;
     const pingURL = process.env.APP_URL || 'https://chat-backend-6r2a.onrender.com/ping';
-    
+
     setInterval(() => {
       console.log('Iniciando auto-ping em:', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
-      
+
       // Usando o módulo https nativo do Node.js
       https.get(pingURL, (res) => {
         let data = '';
-        
+
         res.on('data', (chunk) => {
           data += chunk;
         });
-        
+
         res.on('end', () => {
           console.log('Auto-ping realizado com sucesso:', data);
         });
@@ -103,13 +101,13 @@ io.on('connection', (socket) => {
   socket.on('user-join', (username) => {
     // Verificar se o nome de usuário já está em uso
     const isUsernameTaken = Array.from(connectedUsers.values()).includes(username);
-    
+
     if (isUsernameTaken) {
       // Enviar mensagem de erro para o cliente
       socket.emit('login-error', 'Este nome de usuário já está em uso. Por favor, escolha outro nome.');
       return;
     }
-    
+
     // Armazenar o nome do usuário
     connectedUsers.set(socket.id, username);
 
@@ -125,7 +123,7 @@ io.on('connection', (socket) => {
 
     // Enviar mensagem de boas-vindas
     socket.emit('message', welcomeMessage);
-    
+
     // Informar ao cliente que o login foi bem-sucedido
     socket.emit('login-success');
 
@@ -214,7 +212,7 @@ io.on('connection', (socket) => {
 // Remove this duplicate declaration and use the existing PORT variable
 server.listen(PORT, () => {
   console.log(`Servidor backend rodando na porta ${PORT}`);
-  
+
   // Iniciar o mecanismo de ping automático
   manterServidorAtivo();
 });
